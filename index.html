@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusFlow — Sound Therapy & Mental Wellness</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060d;--bg2:#070a12;--surface:#0d1119;--surface2:#121824;--surface3:#181f2e;
+  --border:rgba(255,255,255,0.055);--border2:rgba(255,255,255,0.11);--border3:rgba(255,255,255,0.18);
+  --text:#d8e0f0;--text2:#768096;--text3:#3d4a63;
+  --blue:#5b8fff;--purple:#9b7df8;--green:#36d9a0;--teal:#1dd9c5;
+  --amber:#f5b942;--rose:#f07ab0;--coral:#f4855a;--sky:#5bcef0;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.z1{position:relative;z-index:1}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:4px}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;backdrop-filter:blur(24px);background:rgba(4,6,13,0.82);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0.95rem 2rem;display:flex;justify-content:space-between;align-items:center}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;letter-spacing:-0.01em}
+.logo em{color:var(--blue);font-style:italic}
+.nav-links{display:flex;gap:0.3rem}
+.nav-link{font-size:0.75rem;color:var(--text3);padding:0.4rem 0.9rem;border-radius:100px;cursor:pointer;transition:all 0.2s;border:1px solid transparent;letter-spacing:0.04em;text-transform:uppercase}
+.nav-link:hover{color:var(--text2);background:var(--surface2)}
+.nav-link.cur{color:var(--blue);border-color:rgba(91,143,255,0.22);background:rgba(91,143,255,0.07)}
+.status-badge{display:flex;align-items:center;gap:7px;font-size:0.7rem;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--text3);transition:all 0.4s}
+.sdot.on{background:var(--green);box-shadow:0 0 10px var(--green)}
+
+/* ── SECTIONS ── */
+.page-section{display:none;min-height:calc(100vh - 60px);padding:3rem 0 5rem}
+.page-section.active{display:block}
+.wrap{max-width:1100px;margin:0 auto;padding:0 2rem}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:4rem 1rem 3rem;animation:fadeUp 0.7s ease both}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;font-size:0.65rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--blue);background:rgba(91,143,255,0.08);border:1px solid rgba(91,143,255,0.18);padding:0.4rem 1.1rem;border-radius:100px;margin-bottom:2rem}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,6vw,5rem);line-height:1.05;letter-spacing:-0.02em;margin-bottom:1.2rem;font-weight:600}
+.hero h1 em{color:var(--purple);font-style:italic}
+.hero p{font-size:1rem;color:var(--text2);max-width:500px;margin:0 auto 2rem;line-height:1.85;font-weight:300}
+.viz-wrap{display:flex;justify-content:center;margin-bottom:1.5rem}
+#viz{border-radius:60px;background:var(--surface);border:1px solid var(--border2)}
+
+/* ── PRESET BAR ── */
+.preset-bar{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:3rem}
+.pbtn{font-family:'DM Sans',sans-serif;font-size:0.77rem;background:var(--surface);border:1px solid var(--border2);color:var(--text2);padding:0.52rem 1.1rem;border-radius:100px;cursor:pointer;transition:all 0.2s}
+.pbtn:hover{background:var(--surface3);color:var(--text)}
+.pbtn.on{background:var(--purple);color:#04060d;border-color:var(--purple);font-weight:500}
+.pbtn.stop{border-color:rgba(240,122,176,0.3);color:var(--rose)}
+.pbtn.stop:hover{background:rgba(240,122,176,0.1)}
+
+/* ── SOUND SECTION LABEL ── */
+.slabel{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:0.9rem;margin-top:2rem;display:flex;align-items:center;gap:10px}
+.slabel::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── SOUND GRID ── */
+.sound-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:9px;margin-bottom:0.5rem}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.05rem 1rem;cursor:pointer;transition:all 0.22s;position:relative;overflow:hidden;user-select:none}
+.scard:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-2px)}
+.scard.on{border-color:var(--c,var(--blue));background:var(--surface2)}
+.scard.on::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 60% 0%,var(--glow) 0%,transparent 65%);pointer-events:none}
+.scard-icon{font-size:1.45rem;margin-bottom:0.5rem;display:block;line-height:1}
+.scard-name{font-size:0.85rem;font-weight:500;color:var(--text);margin-bottom:0.18rem}
+.scard-desc{font-size:0.68rem;color:var(--text3);line-height:1.5}
+.scard-tag{position:absolute;top:9px;right:9px;font-size:0.52rem;letter-spacing:0.09em;text-transform:uppercase;padding:2px 6px;border-radius:100px;background:rgba(255,255,255,0.05);color:var(--text3);transition:all 0.22s}
+.scard.on .scard-tag{background:var(--c,var(--blue));color:#04060d;font-weight:500}
+.vrow{margin-top:0.7rem;display:flex;align-items:center;gap:7px;max-height:0;overflow:hidden;transition:max-height 0.3s ease}
+.scard.on .vrow{max-height:24px}
+.vrow input[type=range]{-webkit-appearance:none;flex:1;height:3px;border-radius:2px;background:var(--surface3);outline:none;cursor:pointer}
+.vrow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--c,var(--blue));cursor:pointer}
+.vlbl{font-size:0.6rem;color:var(--text3)}
+
+/* ── MASTER PANEL ── */
+.master-panel{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:1.4rem 1.6rem;margin-bottom:2.5rem}
+.mrow{display:flex;align-items:center;gap:1rem;margin-bottom:0.85rem}
+.mrow:last-child{margin-bottom:0}
+.mlbl{font-size:0.68rem;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;min-width:95px}
+.mslider{-webkit-appearance:none;flex:1;height:4px;border-radius:2px;background:var(--surface3);outline:none;cursor:pointer}
+.mslider::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--text);cursor:pointer;border:3px solid var(--bg);box-shadow:0 0 0 1px var(--border2)}
+.mval{font-size:0.78rem;color:var(--text2);min-width:42px;text-align:right}
+
+/* ── TIMER ── */
+.timer-wrap{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:1.4rem 1.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem}
+.tdisp{font-family:'Cormorant Garamond',serif;font-size:3.2rem;letter-spacing:-0.04em;font-weight:600;transition:color 0.3s}
+.tdisp.run{color:var(--blue)}
+.tbtns{display:flex;gap:7px;flex-wrap:wrap}
+.tbtn{font-family:'DM Sans',sans-serif;font-size:0.73rem;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);padding:0.42rem 0.95rem;border-radius:100px;cursor:pointer;transition:all 0.2s}
+.tbtn:hover{color:var(--text);background:var(--surface3)}
+.tbtn.on{background:var(--blue);color:#04060d;border-color:var(--blue);font-weight:500}
+.tbtn.red{color:var(--rose);border-color:rgba(240,122,176,0.25)}
+.tbtn.red:hover{background:rgba(240,122,176,0.09)}
+
+/* ─────────────────────────────────────────
+   MENTAL HEALTH PAGE
+───────────────────────────────────────── */
+.mh-hero{padding:3.5rem 0 2.5rem;text-align:center;animation:fadeUp 0.6s ease both}
+.mh-hero h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,4.5vw,3.5rem);font-weight:600;letter-spacing:-0.02em;margin-bottom:0.9rem}
+.mh-hero h2 em{color:var(--teal);font-style:italic}
+.mh-hero p{font-size:0.95rem;color:var(--text2);max-width:520px;margin:0 auto;line-height:1.8;font-weight:300}
+
+/* condition cards */
+.mh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px;margin-bottom:3rem}
+.mhcard{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all 0.25s;cursor:pointer}
+.mhcard:hover{border-color:var(--border3);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.35)}
+.mhcard-header{padding:1.3rem 1.4rem 1.1rem;border-bottom:1px solid var(--border)}
+.mhcard-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.6rem}
+.mhcard-icon{font-size:1.8rem;line-height:1}
+.mhcard-prevalence{font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:100px;font-weight:500}
+.prev-high{background:rgba(245,122,66,0.12);color:var(--coral)}
+.prev-vhigh{background:rgba(240,122,176,0.12);color:var(--rose)}
+.prev-mod{background:rgba(91,143,255,0.12);color:var(--blue)}
+.prev-low{background:rgba(155,125,248,0.12);color:var(--purple)}
+.mhcard-title{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;color:var(--text);margin-bottom:0.35rem}
+.mhcard-sub{font-size:0.72rem;color:var(--text3);line-height:1.55}
+.mhcard-body{padding:1.2rem 1.4rem}
+/* symptoms */
+.sym-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.1rem}
+.sym-chip{font-size:0.65rem;padding:3px 9px;border-radius:100px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2)}
+/* therapy */
+.therapy-title{font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal);margin-bottom:0.65rem;display:flex;align-items:center;gap:6px}
+.therapy-title::before{content:'🎧'}
+.therapy-items{display:flex;flex-direction:column;gap:0.45rem;margin-bottom:1rem}
+.titem{display:flex;gap:9px;align-items:flex-start}
+.titem-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:5px}
+.titem-text{font-size:0.75rem;color:var(--text2);line-height:1.55}
+.titem-text strong{color:var(--text);font-weight:500}
+/* effect banner */
+.effect-banner{background:linear-gradient(135deg,rgba(29,217,197,0.07) 0%,rgba(91,143,255,0.05) 100%);border:1px solid rgba(29,217,197,0.14);border-radius:10px;padding:0.65rem 0.9rem;display:flex;gap:8px;align-items:flex-start}
+.effect-arrow{color:var(--teal);font-size:0.8rem;flex-shrink:0;margin-top:1px}
+.effect-text{font-size:0.73rem;color:var(--text2);line-height:1.55;font-style:italic}
+/* play suggestion button */
+.mh-play-btn{margin-top:0.9rem;display:flex;align-items:center;gap:7px;font-size:0.7rem;color:var(--blue);cursor:pointer;border:none;background:none;padding:0;font-family:'DM Sans',sans-serif;transition:opacity 0.2s}
+.mh-play-btn:hover{opacity:0.75}
+.mh-play-btn span{font-size:0.75rem}
+
+/* summary table */
+.sum-title{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:1rem;margin-top:2rem;display:flex;align-items:center;gap:10px}
+.sum-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.sum-table{width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:4rem;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.sum-table th{background:var(--surface2);color:var(--text3);font-size:0.64rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.75rem 1rem;text-align:left;font-weight:400;border-bottom:1px solid var(--border2)}
+.sum-table td{padding:0.7rem 1rem;border-bottom:1px solid var(--border);color:var(--text2);line-height:1.5;vertical-align:top}
+.sum-table tr:last-child td{border-bottom:none}
+.sum-table tr:hover td{background:var(--surface2)}
+.sum-table td:first-child{color:var(--text);font-weight:500}
+.tag-pill{display:inline-block;font-size:0.6rem;padding:2px 7px;border-radius:100px;font-weight:500;letter-spacing:0.04em}
+
+/* disclaimer */
+.disclaimer{background:rgba(245,185,66,0.05);border:1px solid rgba(245,185,66,0.15);border-radius:12px;padding:1rem 1.2rem;margin-bottom:3rem;display:flex;gap:10px}
+.disclaimer-icon{font-size:1rem;flex-shrink:0}
+.disclaimer-text{font-size:0.75rem;color:rgba(220,200,140,0.75);line-height:1.7}
+
+/* ── ABOUT ── */
+.about-wrap{max-width:680px;margin:0 auto;animation:fadeUp 0.6s ease both}
+.about-wrap h2{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:600;margin-bottom:0.8rem;letter-spacing:-0.02em}
+.about-wrap h2 em{color:var(--purple);font-style:italic}
+.about-wrap p{font-size:0.92rem;color:var(--text2);line-height:1.9;margin-bottom:1rem;font-weight:300}
+.about-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:2rem 0}
+.about-card{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:1.2rem}
+.about-card-icon{font-size:1.4rem;margin-bottom:0.5rem}
+.about-card-title{font-size:0.85rem;font-weight:500;color:var(--text);margin-bottom:0.3rem}
+.about-card-desc{font-size:0.72rem;color:var(--text3);line-height:1.6}
+
+footer{border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:0.7rem;color:var(--text3)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:fadeUp 0.6s ease both}
+.d1{animation-delay:0.08s}.d2{animation-delay:0.16s}.d3{animation-delay:0.24s}.d4{animation-delay:0.32s}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="z1">
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Focus<em>Flow</em></div>
+    <div class="nav-links">
+      <div class="nav-link cur" onclick="showPage('sounds')">🎧 Sounds</div>
+      <div class="nav-link" onclick="showPage('mentalhealth')">🧠 Mental Health</div>
+      <div class="nav-link" onclick="showPage('about')">ℹ About</div>
+    </div>
+    <div class="status-badge">
+      <div class="sdot" id="sdot"></div>
+      <span id="stxt">idle</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     PAGE: SOUNDS
+══════════════════════════════════════ -->
+<div class="page-section active" id="page-sounds">
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-badge">🎧 Sound Therapy for the Mind</div>
+    <h1>Silence the noise.<br><em>Find your flow.</em></h1>
+    <p>Binaural beats, nature soundscapes & healing frequencies — all generated live in your browser. Layer them freely.</p>
+    <div class="viz-wrap"><canvas id="viz" width="360" height="70"></canvas></div>
+  </div>
+
+  <div class="preset-bar anim d1" id="presets">
+    <button class="pbtn" data-preset="deepwork">🧠 Deep Work</button>
+    <button class="pbtn" data-preset="calm">🌿 Calm Mind</button>
+    <button class="pbtn" data-preset="sleep">🌙 Wind Down</button>
+    <button class="pbtn" data-preset="energy">⚡ Energy</button>
+    <button class="pbtn" data-preset="meditation">🕉 Meditate</button>
+    <button class="pbtn" data-preset="anxiety">💙 Anxiety Relief</button>
+    <button class="pbtn" data-preset="focus">🔬 Focus+</button>
+    <button class="pbtn stop" onclick="stopAll()">⏹ Stop All</button>
+  </div>
+
+  <!-- NOISE -->
+  <div class="slabel anim d2">Noise &amp; Static</div>
+  <div class="sound-grid anim d2" id="grid-noise"></div>
+
+  <!-- BINAURAL -->
+  <div class="slabel anim d2">Binaural Beats</div>
+  <div class="sound-grid anim d2" id="grid-binaural"></div>
+
+  <!-- NATURE -->
+  <div class="slabel anim d3">Nature Soundscapes</div>
+  <div class="sound-grid anim d3" id="grid-nature"></div>
+
+  <!-- TONES -->
+  <div class="slabel anim d3">Healing Frequencies</div>
+  <div class="sound-grid anim d3" id="grid-tones"></div>
+
+  <!-- MASTER -->
+  <div class="slabel anim d4">Master Controls</div>
+  <div class="master-panel anim d4">
+    <div class="mrow">
+      <div class="mlbl">Master Vol</div>
+      <input type="range" class="mslider" id="masterVol" min="0" max="100" value="75">
+      <div class="mval" id="mvVal">75%</div>
+    </div>
+    <div class="mrow">
+      <div class="mlbl">Fade Speed</div>
+      <input type="range" class="mslider" id="fadeSpeed" min="1" max="10" value="3">
+      <div class="mval" id="fsVal">3s</div>
+    </div>
+    <div class="mrow">
+      <div class="mlbl">Beat Frequency</div>
+      <input type="range" class="mslider" id="beatHz" min="1" max="40" value="10" oninput="updateBeatHz(this.value)">
+      <div class="mval" id="bhzVal">10 Hz</div>
+    </div>
+  </div>
+
+  <!-- TIMER -->
+  <div class="slabel anim d4">Focus Timer</div>
+  <div class="timer-wrap anim d4">
+    <div class="tdisp" id="tdisp">25:00</div>
+    <div class="tbtns">
+      <button class="tbtn on" data-mins="25" onclick="setTimer(25)">25 min</button>
+      <button class="tbtn" data-mins="45" onclick="setTimer(45)">45 min</button>
+      <button class="tbtn" data-mins="60" onclick="setTimer(60)">60 min</button>
+      <button class="tbtn" data-mins="90" onclick="setTimer(90)">90 min</button>
+      <button class="tbtn" id="tstbtn" onclick="toggleTimer()">▶ Start</button>
+      <button class="tbtn red" onclick="resetTimer()">↺ Reset</button>
+    </div>
+  </div>
+
+</div>
+</div><!-- /sounds page -->
+
+<!-- ══════════════════════════════════════
+     PAGE: MENTAL HEALTH
+══════════════════════════════════════ -->
+<div class="page-section" id="page-mentalhealth">
+<div class="wrap">
+
+  <div class="mh-hero">
+    <h2>Understanding Your<br><em>Mental Health</em></h2>
+    <p>Sound therapy is a powerful complementary tool. Learn what each condition feels like, how sound helps, and what sounds to use.</p>
+  </div>
+
+  <div class="disclaimer">
+    <div class="disclaimer-icon">⚠️</div>
+    <div class="disclaimer-text"><strong style="color:rgba(245,185,66,0.9)">Important:</strong> Sound therapy is a complementary support tool — not a replacement for professional mental health treatment. If you are experiencing serious symptoms, please consult a qualified mental health professional. The information below is educational only.</div>
+  </div>
+
+  <div class="mh-grid" id="mhGrid"></div>
+
+  <div class="sum-title">Quick reference summary</div>
+  <table class="sum-table">
+    <thead>
+      <tr>
+        <th>Condition</th>
+        <th>Best Sound Type</th>
+        <th>Recommended Preset</th>
+        <th>Expected Outcome</th>
+      </tr>
+    </thead>
+    <tbody id="sumTable"></tbody>
+  </table>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE: ABOUT
+══════════════════════════════════════ -->
+<div class="page-section" id="page-about">
+<div class="wrap">
+  <div class="about-wrap" style="padding-top:3rem">
+    <h2>About <em>FocusFlow</em></h2>
+    <p>FocusFlow is a browser-based sound therapy app that generates all audio in real-time using the Web Audio API — no downloads, no streaming, no latency. Every tone, beat and soundscape is synthesized live on your device.</p>
+    <p>Our mission is to make evidence-informed sound therapy accessible to everyone — students, professionals, people managing anxiety, insomnia, stress or simply anyone who wants a calmer, more focused mind.</p>
+    <div class="about-grid">
+      <div class="about-card">
+        <div class="about-card-icon">🎧</div>
+        <div class="about-card-title">Use Headphones</div>
+        <div class="about-card-desc">Binaural beats only work with headphones. Each ear receives a slightly different frequency, and your brain creates the beat.</div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">🔬</div>
+        <div class="about-card-title">Science-Backed</div>
+        <div class="about-card-desc">Based on research in psychoacoustics, brainwave entrainment, and music therapy. Alpha and theta waves have measurable calming effects.</div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">🌐</div>
+        <div class="about-card-title">100% Browser</div>
+        <div class="about-card-desc">No server, no login, no tracking. Everything runs locally in your browser using the Web Audio API.</div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">🔀</div>
+        <div class="about-card-title">Layer Freely</div>
+        <div class="about-card-desc">Combine any sounds — binaural + nature + tone — to create your perfect personal soundscape with individual volume controls.</div>
+      </div>
+    </div>
+    <p style="font-size:0.78rem;color:var(--text3)">FocusFlow · Built with Web Audio API · Open freely in any modern browser · Best experienced with headphones 🎧</p>
+  </div>
+</div>
+</div>
+
+<footer>FocusFlow · Sound Therapy &amp; Mental Wellness · Use headphones for binaural beats 🎧</footer>
+</div><!-- /z1 -->
+
+<script>
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('cur'));
+  event.target.classList.add('cur');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ═══════════════════════════════════════════════
+// SOUND DEFINITIONS
+// ═══════════════════════════════════════════════
+const SOUNDS=[
+  // NOISE
+  {id:'brown',grp:'noise',name:'Brown Noise',icon:'🟫',desc:'Deep, rich rumble. Powerful distraction blocker.',c:'#d4874a',glow:'rgba(212,135,74,0.13)',tag:'noise'},
+  {id:'pink', grp:'noise',name:'Pink Noise', icon:'🌸',desc:'Balanced spectrum. Aids memory and concentration.',c:'#f472b6',glow:'rgba(244,114,182,0.11)',tag:'noise'},
+  {id:'white',grp:'noise',name:'White Noise',icon:'🌫️',desc:'Full-spectrum static. Masks all background sound.',c:'#90aad0',glow:'rgba(144,170,208,0.09)',tag:'noise'},
+  {id:'grey', grp:'noise',name:'Grey Noise', icon:'⬜',desc:'Perceptually flat. Gentle on the ears long-term.',c:'#8898b8',glow:'rgba(136,152,184,0.09)',tag:'noise'},
+  // BINAURAL
+  {id:'alpha',grp:'binaural',name:'Alpha Waves',icon:'🧠',desc:'8–12 Hz. Calm, alert, creative focus.',type:'binaural',freq:200,beat:10,c:'#5b8fff',glow:'rgba(91,143,255,0.12)',tag:'binaural'},
+  {id:'theta',grp:'binaural',name:'Theta Waves',icon:'🌀',desc:'4–8 Hz. Deep relaxation, intuitive flow.',type:'binaural',freq:180,beat:6,c:'#9b7df8',glow:'rgba(155,125,248,0.12)',tag:'binaural'},
+  {id:'beta', grp:'binaural',name:'Beta Waves', icon:'⚡',desc:'13–30 Hz. Alert, sharp mental energy.',type:'binaural',freq:220,beat:18,c:'#f5b942',glow:'rgba(245,185,66,0.11)',tag:'binaural'},
+  {id:'delta',grp:'binaural',name:'Delta Waves',icon:'🌙',desc:'0.5–4 Hz. Deep sleep and restoration.',type:'binaural',freq:150,beat:2,c:'#1dd9c5',glow:'rgba(29,217,197,0.1)',tag:'binaural'},
+  {id:'gamma',grp:'binaural',name:'Gamma Waves',icon:'💡',desc:'30–80 Hz. Peak cognition and memory recall.',type:'binaural',freq:240,beat:40,c:'#f4855a',glow:'rgba(244,133,90,0.11)',tag:'binaural'},
+  // NATURE
+  {id:'rain',   grp:'nature',name:'Rain',         icon:'🌧️',desc:'Gentle steady rainfall. Deeply soothing.',c:'#5bcef0',glow:'rgba(91,206,240,0.1)',tag:'nature'},
+  {id:'ocean',  grp:'nature',name:'Ocean Waves',  icon:'🌊',desc:'Rolling waves and sea breeze. Releases tension.',c:'#2ea8e8',glow:'rgba(46,168,232,0.1)',tag:'nature'},
+  {id:'forest', grp:'nature',name:'Forest',       icon:'🌲',desc:'Birds and rustling leaves. Grounding presence.',c:'#36d9a0',glow:'rgba(54,217,160,0.1)',tag:'nature'},
+  {id:'fire',   grp:'nature',name:'Campfire',     icon:'🔥',desc:'Warm crackling fire. Safe and cosy focus.',c:'#fb923c',glow:'rgba(251,146,60,0.11)',tag:'nature'},
+  {id:'stream', grp:'nature',name:'Stream',       icon:'💧',desc:'Babbling brook. Cleanses mental clutter.',c:'#38bdf8',glow:'rgba(56,189,248,0.1)',tag:'nature'},
+  {id:'thunder',grp:'nature',name:'Thunder Storm',icon:'⛈️',desc:'Distant thunder and rain. Productive pressure.',c:'#818cf8',glow:'rgba(129,140,248,0.1)',tag:'nature'},
+  {id:'wind',   grp:'nature',name:'Wind',         icon:'🍃',desc:'Soft breeze through trees. Clears the mind.',c:'#a8d5a2',glow:'rgba(168,213,162,0.08)',tag:'nature'},
+  {id:'night',  grp:'nature',name:'Night Crickets',icon:'🦗',desc:'Summer night sounds. Calming and nostalgic.',c:'#7dd3fc',glow:'rgba(125,211,252,0.09)',tag:'nature'},
+  {id:'cafe',   grp:'nature',name:'Café Ambience',icon:'☕',desc:'Soft background chatter. Focus-boosting murmur.',c:'#c8a26e',glow:'rgba(200,162,110,0.09)',tag:'nature'},
+  // TONES
+  {id:'528',grp:'tones',name:'528 Hz',icon:'✨',desc:'"Miracle tone" — clarity, transformation.',type:'tone',freq:528,c:'#c4b5fd',glow:'rgba(196,181,253,0.1)',tag:'tone'},
+  {id:'432',grp:'tones',name:'432 Hz',icon:'🎵',desc:'Natural tuning. Harmonious, deeply relaxing.',type:'tone',freq:432,c:'#6ee7b7',glow:'rgba(110,231,183,0.09)',tag:'tone'},
+  {id:'396',grp:'tones',name:'396 Hz',icon:'🔓',desc:'Liberating guilt and fear. Grounding tone.',type:'tone',freq:396,c:'#fda4af',glow:'rgba(253,164,175,0.09)',tag:'tone'},
+  {id:'639',grp:'tones',name:'639 Hz',icon:'💛',desc:'Reconnecting relationships. Heart-opening.',type:'tone',freq:639,c:'#fde68a',glow:'rgba(253,230,138,0.09)',tag:'tone'},
+  {id:'bowl',grp:'tones',name:'Singing Bowl',icon:'🔔',desc:'Tibetan bowl resonance. Meditation anchor.',type:'bowl',c:'#d4af37',glow:'rgba(212,175,55,0.1)',tag:'tone'},
+];
+
+// ═══════════════════════════════════════════════
+// MENTAL HEALTH DATA
+// ═══════════════════════════════════════════════
+const MH_CONDITIONS=[
+  {
+    id:'anxiety',icon:'💙',title:'Anxiety Disorder',
+    prevalence:'Very High',prevClass:'prev-vhigh',
+    types:'Generalized anxiety, panic disorder, social anxiety',
+    symptoms:['Constant worry','Restlessness','Rapid heartbeat','Chest tightness','Overthinking'],
+    therapy:[
+      {text:'<strong>Binaural beats (alpha/theta):</strong> Reduces physiological arousal and slows racing thoughts'},
+      {text:'<strong>Nature sounds (rain, ocean):</strong> Lowers cortisol and activates the parasympathetic system'},
+      {text:'<strong>Slow instrumental (60–80 BPM):</strong> Stabilises heart rate and breathing'},
+    ],
+    effect:'Helps calm the nervous system and reduce physical symptoms. Best combined with CBT or therapy.',
+    preset:'calm',presetLabel:'🌿 Calm Mind',
+    tableSound:'Binaural beats, nature',tableOutcome:'Reduced arousal, calmness',
+    color:'rgba(91,143,255,0.08)',accent:'#5b8fff'
+  },
+  {
+    id:'depression',icon:'🌑',title:'Depression',
+    prevalence:'Extremely High',prevClass:'prev-vhigh',
+    types:'Major depressive disorder, persistent depressive disorder',
+    symptoms:['Persistent sadness','Low energy','Loss of interest','Sleep disturbance','Hopelessness'],
+    therapy:[
+      {text:'<strong>Guided music therapy:</strong> Enables emotional expression and processing'},
+      {text:'<strong>Uplifting harmonic music:</strong> Activates dopamine reward pathways'},
+      {text:'<strong>Chanting / humming / 528 Hz:</strong> Stimulates the vagus nerve, lifting mood'},
+    ],
+    effect:'Mild to moderate mood improvement. Not sufficient for major depression alone — combine with professional care.',
+    preset:'meditation',presetLabel:'🕉 Meditate',
+    tableSound:'Music therapy, 528 Hz humming',tableOutcome:'Mild mood lift, emotional release',
+    color:'rgba(155,125,248,0.08)',accent:'#9b7df8'
+  },
+  {
+    id:'insomnia',icon:'😴',title:'Insomnia',
+    prevalence:'Very High',prevClass:'prev-vhigh',
+    types:'Onset insomnia, maintenance insomnia, chronic insomnia',
+    symptoms:['Difficulty falling asleep','Waking frequently','Unrefreshing sleep','Daytime fatigue','Racing thoughts at bedtime'],
+    therapy:[
+      {text:'<strong>White / pink noise:</strong> Masks environmental disturbances that wake you'},
+      {text:'<strong>Delta wave sounds (0.5–4 Hz):</strong> Entrains the brain toward deep sleep stages'},
+      {text:'<strong>Guided sleep audio:</strong> Reduces racing thoughts and mental activation'},
+    ],
+    effect:'Strong evidence for improving sleep latency and quality. One of the most responsive conditions to sound therapy.',
+    preset:'sleep',presetLabel:'🌙 Wind Down',
+    tableSound:'White/pink noise, delta waves',tableOutcome:'Faster sleep onset, deeper sleep',
+    color:'rgba(29,217,197,0.07)',accent:'#1dd9c5'
+  },
+  {
+    id:'stress',icon:'🔥',title:'Chronic Stress',
+    prevalence:'Near Universal',prevClass:'prev-vhigh',
+    types:'Work stress, relationship stress, burnout',
+    symptoms:['Irritability','Fatigue','Muscle tension','Headaches','Poor concentration'],
+    therapy:[
+      {text:'<strong>Ambient soundscapes:</strong> Reduce sympathetic nervous system activation'},
+      {text:'<strong>Nature sounds:</strong> Nature exposure (even audio) measurably lowers cortisol'},
+      {text:'<strong>Tibetan bowls / meditation bells:</strong> Induce relaxation response within minutes'},
+    ],
+    effect:'Highly effective for short-term regulation. Regular use builds resilience against chronic stress triggers.',
+    preset:'calm',presetLabel:'🌿 Calm Mind',
+    tableSound:'Ambient nature, meditation bells',tableOutcome:'Relaxation, cortisol reduction',
+    color:'rgba(244,133,90,0.08)',accent:'#f4855a'
+  },
+  {
+    id:'ocd',icon:'🔁',title:'OCD',
+    prevalence:'Moderate',prevClass:'prev-mod',
+    types:'Checking, contamination, rumination, symmetry OCD',
+    symptoms:['Intrusive thoughts','Compulsive repetition','Mental rituals','Distress','Time-consuming rituals'],
+    therapy:[
+      {text:'<strong>Repetitive rhythmic sounds:</strong> Can reduce the urgency of compulsive impulses'},
+      {text:'<strong>Mindfulness audio guidance:</strong> Improves thought distancing and cognitive defusion'},
+      {text:'<strong>Alpha binaural beats:</strong> Interrupts intrusive thought loops'},
+    ],
+    effect:'Supportive only. Primary treatment remains CBT (especially ERP) with medication. Sound helps with daily management.',
+    preset:'focus',presetLabel:'🔬 Focus+',
+    tableSound:'Rhythmic sounds, mindfulness',tableOutcome:'Reduced urgency, better thought distance',
+    color:'rgba(245,185,66,0.07)',accent:'#f5b942'
+  },
+  {
+    id:'ptsd',icon:'⚡',title:'PTSD',
+    prevalence:'Less Common',prevClass:'prev-mod',
+    types:'Combat PTSD, childhood trauma, accident trauma',
+    symptoms:['Flashbacks','Hypervigilance','Nightmares','Emotional numbness','Avoidance'],
+    therapy:[
+      {text:'<strong>Low-frequency grounding sounds:</strong> Stabilise emotional spikes and bring you back to now'},
+      {text:'<strong>Nature / familiar sounds:</strong> Provides safe-environment signals to reduce triggers'},
+      {text:'<strong>Trauma-informed guided audio:</strong> Regulates the nervous system safely'},
+    ],
+    effect:'Useful adjunct therapy. Primary treatment is trauma-focused CBT or EMDR. Never use stimulating sounds during a flashback.',
+    preset:'calm',presetLabel:'🌿 Calm Mind',
+    tableSound:'Grounding audio, nature sounds',tableOutcome:'Emotional stabilisation, safety cues',
+    color:'rgba(91,206,240,0.07)',accent:'#5bcef0'
+  },
+  {
+    id:'bipolar',icon:'〰️',title:'Bipolar Disorder',
+    prevalence:'Lower',prevClass:'prev-low',
+    types:'Bipolar I, Bipolar II, Cyclothymia',
+    symptoms:['Mood swings','Manic episodes','Depressive episodes','Impulsivity','Sleep disruption'],
+    therapy:[
+      {text:'<strong>Stabilising rhythm music:</strong> Helps regulate mood cycles and daily routine'},
+      {text:'<strong>Avoid overstimulating audio during mania</strong> — no high-energy or fast-beat tracks'},
+      {text:'<strong>Theta waves during low phases:</strong> Gentle mood-lifting without triggering mania'},
+    ],
+    effect:'Very limited effectiveness on its own. Medication is essential. Sound therapy best used as a grounding adjunct in stable periods.',
+    preset:'meditation',presetLabel:'🕉 Meditate',
+    tableSound:'Soft rhythmic, theta',tableOutcome:'Minor cycle regulation',
+    color:'rgba(240,122,176,0.07)',accent:'#f07ab0'
+  },
+  {
+    id:'schizophrenia',icon:'🌐',title:'Schizophrenia',
+    prevalence:'Rare',prevClass:'prev-low',
+    types:'Paranoid, disorganised, catatonic schizophrenia',
+    symptoms:['Hallucinations','Delusions','Disorganised speech','Social withdrawal','Flat affect'],
+    therapy:[
+      {text:'<strong>Structured music therapy:</strong> Improves social engagement and emotional expression'},
+      {text:'<strong>Avoid complex auditory stimulation</strong> — can worsen auditory hallucinations'},
+      {text:'<strong>Simple, predictable rhythms:</strong> Help maintain temporal orientation'},
+    ],
+    effect:'Supportive only and must be used under clinical supervision. Antipsychotic medication is the primary intervention.',
+    preset:'calm',presetLabel:'🌿 Calm Mind',
+    tableSound:'Structured music therapy',tableOutcome:'Social improvement (supervised)',
+    color:'rgba(168,213,162,0.07)',accent:'#a8d5a2'
+  },
+];
+
+// ═══════════════════════════════════════════════
+// AUDIO ENGINE
+// ═══════════════════════════════════════════════
+let ctx=null,masterGain,analyser;
+let masterVol=0.75,fadeDur=3;
+const nodes={};
+
+function initCtx(){
+  if(ctx)return;
+  ctx=new(window.AudioContext||window.webkitAudioContext)();
+  masterGain=ctx.createGain();masterGain.gain.value=masterVol;
+  analyser=ctx.createAnalyser();analyser.fftSize=256;
+  masterGain.connect(analyser);analyser.connect(ctx.destination);
+}
+
+function makeNoise(type){
+  const sz=ctx.sampleRate*4;
+  const buf=ctx.createBuffer(1,sz,ctx.sampleRate);
+  const d=buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for(let i=0;i<sz;i++){
+    const w=Math.random()*2-1;
+    if(type==='white'){d[i]=w;continue;}
+    if(type==='pink'){
+      b0=0.99886*b0+w*0.0555179;b1=0.99332*b1+w*0.0750759;
+      b2=0.96900*b2+w*0.1538520;b3=0.86650*b3+w*0.3104856;
+      b4=0.55000*b4+w*0.5329522;b5=-0.7616*b5-w*0.0168980;
+      d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)/7;b6=w*0.115926;continue;
+    }
+    if(type==='grey'){
+      b0=0.99886*b0+w*0.04;b1=0.99332*b1+w*0.06;
+      d[i]=(b0+b1+w*0.3)/2.5;continue;
+    }
+    // brown
+    b0=(b0+w*0.02)/1.02;d[i]=b0*3.5;
+    if(d[i]>1)d[i]=1;if(d[i]<-1)d[i]=-1;
+  }
+  const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;return src;
+}
+
+function makeBinaural(base,beat){
+  const merger=ctx.createChannelMerger(2);
+  const L=ctx.createOscillator(),R=ctx.createOscillator();
+  const gL=ctx.createGain(),gR=ctx.createGain();
+  L.frequency.value=base;R.frequency.value=base+beat;
+  L.type='sine';R.type='sine';gL.gain.value=0.35;gR.gain.value=0.35;
+  L.connect(gL);R.connect(gR);gL.connect(merger,0,0);gR.connect(merger,0,1);
+  L.start();R.start();
+  return{node:merger,oscs:[L,R]};
+}
+
+function makeNature(id){
+  const sz=ctx.sampleRate*8,sr=ctx.sampleRate;
+  const buf=ctx.createBuffer(2,sz,sr);
+  for(let ch=0;ch<2;ch++){
+    const d=buf.getChannelData(ch);
+    if(id==='rain'){
+      let b0=0,b1=0;
+      for(let i=0;i<sz;i++){const w=Math.random()*2-1;b0=0.95*b0+w*0.05;b1=0.85*b1+b0*0.15;d[i]=(b0+b1)*0.5*(0.5+0.5*Math.random());}
+    }else if(id==='ocean'){
+      let b0=0,phase=0;
+      for(let i=0;i<sz;i++){
+        const w=Math.random()*2-1;b0=0.98*b0+w*0.02;
+        phase+=0.00003;
+        d[i]=b0*(0.4+0.6*Math.abs(Math.sin(phase)));
+      }
+    }else if(id==='forest'){
+      let b0=0;
+      for(let i=0;i<sz;i++){
+        const w=Math.random()*2-1;b0=0.99*b0+w*0.01;
+        const chirp=Math.sin(2*Math.PI*i*2800/sr)*0.0015*(Math.random()<0.0008?1:0);
+        d[i]=b0*0.35+chirp;
+      }
+    }else if(id==='fire'){
+      let b0=0;
+      for(let i=0;i<sz;i++){
+        const w=Math.random()*2-1;b0=0.97*b0+w*0.03;
+        const crack=Math.random()<0.0004?Math.random()*0.4:0;
+        d[i]=b0*0.55+crack;
+      }
+    }else if(id==='stream'){
+      let b0=0,b1=0;
+      for(let i=0;i<sz;i++){
+        const w=Math.random()*2-1;b0=0.93*b0+w*0.07;b1=0.96*b1+b0*0.04;
+        d[i]=(b0*0.3+b1*0.4)*(0.7+0.3*Math.random());
+      }
+    }else if(id==='thunder'){
+      let b0=0,rumble=0;
+      for(let i=0;i<sz;i++){
+        const w=Math.random()*2-1;b0=0.97*b0+w*0.025;
+        const rain=b0*0.4*(0.5+0.5*Math.random());
+        if(Math.random()<0.00001)rumble=0.8+Math.random()*0.5;
+        rumble*=0.9998;
+        d[i]=rain+(Math.random()*2-1)*rumble*0.3;
+      }
+    }else if(id==='wind'){
+      let b0=0,b1=0;
+      for(let i=0;i<sz;i++){
+        const w=Math.random()*2-1;b0=0.998*b0+w*0.002;b1=0.99*b1+b0*0.01;
+        const gust=Math.sin(i*0.000015)*0.5+0.5;
+        d[i]=(b0*0.2+b1*0.3)*gust*(0.6+0.4*Math.random());
+      }
+    }else if(id==='night'){
+      for(let i=0;i<sz;i++){
+        const cricket1=Math.sin(2*Math.PI*i*4200/sr)*0.04*(Math.random()<0.5?1:0);
+        const cricket2=Math.sin(2*Math.PI*i*3800/sr)*0.03*(Math.random()<0.3?1:0);
+        d[i]=(cricket1+cricket2)*(Math.random()*0.8+0.2);
+      }
+    }else if(id==='cafe'){
+      let b0=0;
+      for(let i=0;i<sz;i++){
+        const w=Math.random()*2-1;b0=0.995*b0+w*0.005;
+        const murmur=Math.sin(i*0.001)*0.5+0.5;
+        d[i]=b0*0.3*murmur+(Math.random()*0.02-0.01);
+      }
+    }
+  }
+  const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;return src;
+}
+
+function makeTone(freq){
+  const osc=ctx.createOscillator();
+  const g=ctx.createGain();
+  osc.frequency.value=freq;osc.type='sine';g.gain.value=0.28;
+  osc.connect(g);osc.start();return{node:g,osc};
+}
+
+function makeBowl(){
+  // Tibetan bowl: multiple harmonics with slow envelope
+  const oscs=[];const gains=[];
+  const freqs=[220,440,660,880,1100];
+  const merger=ctx.createChannelMerger(1);
+  const masterG=ctx.createGain();masterG.gain.value=0.15;
+  freqs.forEach((f,i)=>{
+    const o=ctx.createOscillator();const g=ctx.createGain();
+    o.frequency.value=f+i*3;o.type='sine';
+    g.gain.setValueAtTime(0,ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.3/(i+1),ctx.currentTime+0.1);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+3+i*0.5);
+    o.connect(g);g.connect(masterG);o.start();
+    oscs.push(o);
+  });
+  // Re-strike every 4 seconds
+  const interval=setInterval(()=>{
+    if(!nodes['bowl'])return clearInterval(interval);
+    freqs.forEach((f,i)=>{
+      try{
+        oscs[i].frequency.setValueAtTime(f+i*3,ctx.currentTime);
+        gains[i]&&gains[i].gain.cancelScheduledValues(ctx.currentTime);
+      }catch(e){}
+    });
+  },4000);
+  masterG.connect(masterGain);
+  return{node:masterG,oscs,interval};
+}
+
+function cardVol(id){const el=document.getElementById('vol_'+id);return el?parseInt(el.value)/100:0.7;}
+
+function playSound(id){
+  initCtx();if(ctx.state==='suspended')ctx.resume();
+  const s=SOUNDS.find(x=>x.id===id);if(!s)return;
+  if(nodes[id]){stopSound(id);return;}
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0,ctx.currentTime);
+  g.gain.linearRampToValueAtTime(masterVol*cardVol(id),ctx.currentTime+fadeDur);
+  let src={},extra={};
+  if(s.grp==='noise'){const n=makeNoise(s.id);n.connect(g);n.start();src=n;}
+  else if(s.grp==='binaural'){const b=makeBinaural(s.freq,s.beat);b.node.connect(g);src=b.node;extra.oscs=b.oscs;}
+  else if(s.grp==='nature'){const n=makeNature(s.id);n.connect(g);n.start();src=n;}
+  else if(s.grp==='tones'){
+    if(s.type==='bowl'){const b=makeBowl();extra=b;src=b.node;g.disconnect();b.node.connect(analyser);}
+    else{const t=makeTone(s.freq);t.node.connect(g);src=t.node;extra.osc=t.osc;}
+  }
+  if(s.type!=='bowl'){g.connect(masterGain);}
+  nodes[id]={src,g,...extra};
+  updateCard(id,true);updateStatus();
+}
+
+function stopSound(id){
+  const n=nodes[id];if(!n)return;
+  const cleanup=()=>{
+    try{if(n.src&&n.src.stop)n.src.stop();}catch(e){}
+    try{if(n.oscs)n.oscs.forEach(o=>{try{o.stop();}catch(e){}});}catch(e){}
+    try{if(n.osc)n.osc.stop();}catch(e){}
+    try{if(n.interval)clearInterval(n.interval);}catch(e){}
+    delete nodes[id];updateCard(id,false);updateStatus();
+  };
+  if(n.g){
+    try{
+      n.g.gain.cancelScheduledValues(ctx.currentTime);
+      n.g.gain.setValueAtTime(n.g.gain.value,ctx.currentTime);
+      n.g.gain.linearRampToValueAtTime(0,ctx.currentTime+Math.min(fadeDur,2));
+      setTimeout(cleanup,Math.min(fadeDur,2)*1000+100);
+    }catch(e){cleanup();}
+  }else cleanup();
+}
+
+function stopAll(){
+  Object.keys(nodes).forEach(stopSound);
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('on'));
+}
+
+const PRESETS={
+  deepwork:['brown','alpha'],
+  calm:['pink','theta','rain'],
+  sleep:['brown','delta','rain'],
+  energy:['white','beta'],
+  meditation:['forest','theta','432','bowl'],
+  anxiety:['rain','alpha','ocean'],
+  focus:['brown','gamma','alpha'],
+};
+
+document.getElementById('presets').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-preset]');if(!btn)return;
+  stopAll();
+  setTimeout(()=>{
+    PRESETS[btn.dataset.preset].forEach(id=>playSound(id));
+    document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+  },400);
+});
+
+document.getElementById('masterVol').addEventListener('input',function(){
+  masterVol=this.value/100;
+  document.getElementById('mvVal').textContent=this.value+'%';
+  if(masterGain)masterGain.gain.setTargetAtTime(masterVol,ctx.currentTime,0.05);
+  Object.entries(nodes).forEach(([id,n])=>{
+    if(n.g)n.g.gain.setTargetAtTime(masterVol*cardVol(id),ctx.currentTime,0.05);
+  });
+});
+document.getElementById('fadeSpeed').addEventListener('input',function(){
+  fadeDur=parseInt(this.value);document.getElementById('fsVal').textContent=this.value+'s';
+});
+function updateBeatHz(v){
+  document.getElementById('bhzVal').textContent=v+' Hz';
+  const n=nodes['alpha'];
+  if(n&&n.oscs){try{n.oscs[1].frequency.setTargetAtTime(200+parseInt(v),ctx.currentTime,0.1);}catch(e){}}
+}
+function updateCardVol(id,v){
+  const n=nodes[id];if(!n||!n.g)return;
+  n.g.gain.setTargetAtTime(masterVol*v/100,ctx.currentTime,0.05);
+}
+
+function updateCard(id,on){
+  const el=document.querySelector(`.scard[data-id="${id}"]`);
+  if(el){on?el.classList.add('on'):el.classList.remove('on');}
+}
+function updateStatus(){
+  const c=Object.keys(nodes).length;
+  const d=document.getElementById('sdot'),t=document.getElementById('stxt');
+  c>0?(d.classList.add('on'),t.textContent=c+' layer'+(c>1?'s':'')+' active'):(d.classList.remove('on'),t.textContent='idle');
+}
+
+// ── RENDER SOUND GRIDS ──
+function renderSounds(){
+  ['noise','binaural','nature','tones'].forEach(grp=>{
+    const el=document.getElementById('grid-'+grp);if(!el)return;
+    el.innerHTML=SOUNDS.filter(s=>s.grp===grp).map(s=>`
+      <div class="scard" data-id="${s.id}" style="--c:${s.c};--glow:${s.glow}" onclick="playSound('${s.id}')">
+        <span class="scard-tag">${s.tag}</span>
+        <span class="scard-icon">${s.icon}</span>
+        <div class="scard-name">${s.name}</div>
+        <div class="scard-desc">${s.desc}</div>
+        <div class="vrow" onclick="event.stopPropagation()">
+          <span class="vlbl">🔈</span>
+          <input type="range" id="vol_${s.id}" min="0" max="100" value="70"
+            oninput="updateCardVol('${s.id}',this.value)">
+          <span class="vlbl">🔊</span>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+// ── RENDER MENTAL HEALTH CARDS ──
+function renderMH(){
+  const grid=document.getElementById('mhGrid');
+  grid.innerHTML=MH_CONDITIONS.map(c=>`
+    <div class="mhcard" style="--accent:${c.accent}">
+      <div class="mhcard-header" style="background:${c.color}">
+        <div class="mhcard-top">
+          <span class="mhcard-icon">${c.icon}</span>
+          <span class="mhcard-prevalence ${c.prevClass}">${c.prevalence}</span>
+        </div>
+        <div class="mhcard-title">${c.title}</div>
+        <div class="mhcard-sub">${c.types}</div>
+      </div>
+      <div class="mhcard-body">
+        <div style="font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:0.55rem">Common symptoms</div>
+        <div class="sym-list">${c.symptoms.map(s=>`<span class="sym-chip">${s}</span>`).join('')}</div>
+        <div class="therapy-title">Sound Therapy Recommendations</div>
+        <div class="therapy-items">${c.therapy.map(t=>`
+          <div class="titem">
+            <div class="titem-dot"></div>
+            <div class="titem-text">${t.text}</div>
+          </div>
+        `).join('')}</div>
+        <div class="effect-banner">
+          <span class="effect-arrow">➡</span>
+          <span class="effect-text">${c.effect}</span>
+        </div>
+        <button class="mh-play-btn" onclick="activatePreset('${c.preset}')">
+          <span>▶</span> Try <strong>${c.presetLabel}</strong> preset
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  // Summary table
+  const tbody=document.getElementById('sumTable');
+  tbody.innerHTML=MH_CONDITIONS.map(c=>`
+    <tr>
+      <td>${c.icon} ${c.title}</td>
+      <td>${c.tableSound}</td>
+      <td><span style="background:rgba(91,143,255,0.1);color:var(--blue);padding:2px 8px;border-radius:6px;font-size:0.72rem">${c.presetLabel}</span></td>
+      <td>${c.tableOutcome}</td>
+    </tr>
+  `).join('');
+}
+
+function activatePreset(preset){
+  // Switch to sounds tab and activate preset
+  showPageById('sounds');
+  document.querySelectorAll('.nav-link').forEach((l,i)=>{l.classList.toggle('cur',i===0);});
+  stopAll();
+  setTimeout(()=>{
+    if(PRESETS[preset])PRESETS[preset].forEach(id=>playSound(id));
+    document.querySelectorAll('.pbtn').forEach(b=>{
+      b.classList.toggle('on',b.dataset.preset===preset);
+    });
+  },400);
+}
+function showPageById(id){
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── TIMER ──
+let tsecs=25*60,trunning=false,tiv=null;
+function setTimer(m){
+  if(trunning)resetTimer();tsecs=m*60;renderTimer();
+  document.querySelectorAll('[data-mins]').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.mins)===m));
+}
+function toggleTimer(){
+  if(trunning){
+    clearInterval(tiv);trunning=false;
+    document.getElementById('tstbtn').textContent='▶ Start';
+    document.getElementById('tdisp').classList.remove('run');
+  }else{
+    trunning=true;
+    document.getElementById('tstbtn').textContent='⏸ Pause';
+    document.getElementById('tdisp').classList.add('run');
+    tiv=setInterval(()=>{
+      tsecs--;if(tsecs<=0){
+        tsecs=0;clearInterval(tiv);trunning=false;
+        document.getElementById('tstbtn').textContent='▶ Start';
+        document.getElementById('tdisp').classList.remove('run');
+        playChime();
+        setTimeout(()=>alert('⏰ Session complete! Great work — take a 5-minute break.'),100);
+      }
+      renderTimer();
+    },1000);
+  }
+}
+function resetTimer(){
+  clearInterval(tiv);trunning=false;
+  const a=document.querySelector('[data-mins].on');
+  tsecs=(a?parseInt(a.dataset.mins):25)*60;
+  renderTimer();document.getElementById('tstbtn').textContent='▶ Start';
+  document.getElementById('tdisp').classList.remove('run');
+}
+function renderTimer(){
+  document.getElementById('tdisp').textContent=
+    Math.floor(tsecs/60).toString().padStart(2,'0')+':'+
+    (tsecs%60).toString().padStart(2,'0');
+}
+function playChime(){
+  initCtx();
+  [523,659,784,1047].forEach((f,i)=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.frequency.value=f;o.type='sine';
+    g.gain.setValueAtTime(0,ctx.currentTime+i*0.28);
+    g.gain.linearRampToValueAtTime(0.14,ctx.currentTime+i*0.28+0.06);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.28+1);
+    o.connect(g);g.connect(ctx.destination);
+    o.start(ctx.currentTime+i*0.28);o.stop(ctx.currentTime+i*0.28+1.1);
+  });
+}
+
+// ── VISUALIZER ──
+const vc=document.getElementById('viz'),vx=vc.getContext('2d');
+function drawViz(){
+  requestAnimationFrame(drawViz);
+  vx.clearRect(0,0,360,70);
+  if(!analyser){
+    vx.strokeStyle='rgba(91,143,255,0.2)';vx.lineWidth=1.5;
+    vx.beginPath();const t=Date.now()/1000;
+    for(let x=20;x<=340;x++)vx.lineTo(x,35+Math.sin((x/26)+t)*3);
+    vx.stroke();return;
+  }
+  const buf=new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteTimeDomainData(buf);
+  const grad=vx.createLinearGradient(0,0,360,0);
+  grad.addColorStop(0,'rgba(91,143,255,0.6)');
+  grad.addColorStop(0.5,'rgba(155,125,248,0.8)');
+  grad.addColorStop(1,'rgba(91,143,255,0.6)');
+  vx.strokeStyle=grad;vx.lineWidth=2.2;
+  vx.shadowColor='rgba(91,143,255,0.5)';vx.shadowBlur=10;
+  vx.beginPath();
+  const step=300/buf.length;
+  buf.forEach((v,i)=>{const x=20+i*step,y=35+((v-128)/128)*26;i===0?vx.moveTo(x,y):vx.lineTo(x,y);});
+  vx.stroke();vx.shadowBlur=0;
+}
+
+// ── BACKGROUND ──
+const bc=document.getElementById('bg-canvas'),bx=bc.getContext('2d');
+let stars=[];
+function initBg(){
+  bc.width=window.innerWidth;bc.height=window.innerHeight;
+  stars=Array.from({length:160},()=>({
+    x:Math.random()*bc.width,y:Math.random()*bc.height,
+    r:Math.random()*1.1+0.2,a:Math.random(),spd:Math.random()*0.003+0.0008
+  }));
+}
+function drawBg(){
+  requestAnimationFrame(drawBg);
+  bx.clearRect(0,0,bc.width,bc.height);
+  stars.forEach(s=>{
+    s.a+=s.spd;if(s.a>1)s.a=0;
+    bx.beginPath();bx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    bx.fillStyle=`rgba(120,150,255,${Math.abs(Math.sin(s.a*Math.PI))*0.4})`;
+    bx.fill();
+  });
+  const t=Date.now()/10000;
+  [[0.25,0.3,'rgba(70,50,200,0.04)'],[0.75,0.65,'rgba(20,80,160,0.05)'],[0.5,0.8,'rgba(100,40,180,0.03)']].forEach(([px,py,col])=>{
+    const g=bx.createRadialGradient(bc.width*px+Math.sin(t)*35,bc.height*py+Math.cos(t)*20,0,bc.width*px,bc.height*py,bc.width*0.38);
+    g.addColorStop(0,col);g.addColorStop(1,'transparent');
+    bx.fillStyle=g;bx.fillRect(0,0,bc.width,bc.height);
+  });
+}
+window.addEventListener('resize',initBg);
+initBg();drawBg();drawViz();renderSounds();renderMH();renderTimer();
+</script>
+</body>
+</html>
