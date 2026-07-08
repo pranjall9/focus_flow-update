@@ -348,6 +348,30 @@ footer{border-top:1px solid var(--border);padding:2rem;text-align:center;font-si
 <footer>FocusFlow · Sound Therapy &amp; Mental Wellness · Use headphones for binaural beats 🎧</footer>
 </div><!-- /z1 -->
 
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBRU-dgYjWXuBdOF85hLUs3_H-2G3PHMqg",
+  authDomain: "focus-flow-a5549.firebaseapp.com",
+  projectId: "focus-flow-a5549",
+  storageBucket: "focus-flow-a5549.firebasestorage.app",
+  messagingSenderId: "816968112197",
+  appId: "1:816968112197:web:07aa3556f8e73f63ceeb2c"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// Check if user is logged in
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+  }
+});
+</script>
+
 <script>
 // ═══════════════════════════════════════════════
 // NAVIGATION
